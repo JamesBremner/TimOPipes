@@ -31,16 +31,36 @@ private:
 
 void Test()
 {
-    std::vector<cNode> theNodes;
-    std::vector<cPipe> thePipes;
-
-    // create pipe tree with one limb
-    theNodes.push_back(cNode(cNode::eType::source, "source"));
-    for (int k = 0; k < 3; k++)
-        theNodes.push_back(cNode(cNode::eType::none, std::to_string(k+2)));
-    theNodes.push_back(cNode(cNode::eType::discharge, "sink"));
-    for (int k = 0; k < theNodes.size() - 1; k++)
-        thePipes.push_back(cPipe(theNodes[k], theNodes[k + 1]));
+    cPlumbing thePlumbing;
+    
+    thePlumbing.add(
+        node_t( new cNode(
+            cNode::eType::source,
+            "source1")),
+         node_t( new cNode(
+            cNode::eType::none,
+            "n1")));
+       thePlumbing.add(
+         node_t( new cNode(
+            cNode::eType::none,
+            "n1")),
+         node_t( new cNode(
+            cNode::eType::none,
+            "n2"))); 
+        thePlumbing.add(
+         node_t( new cNode(
+            cNode::eType::none,
+            "n2")),
+         node_t( new cNode(
+            cNode::eType::none,
+            "n3")));
+        thePlumbing.add(
+         node_t( new cNode(
+            cNode::eType::none,
+            "n3")),
+         node_t( new cNode(
+            cNode::eType::discharge,
+            "sink1")));
 
     // for( auto& n : theNodes )
     //     std::cout << n.name() << " ( " << n.id() << " )\n"; 
@@ -50,30 +70,27 @@ void Test()
     // initialize graph with pipe tree
     raven::graph::cPathFinder PF;
     PF.directed();
-    for( auto& p : thePipes )
-    PF.addLink(
-        p.start().name(),
-        p.end().name());
+    for (auto &p : thePlumbing)
+        PF.addLink(
+            p.start()->name(),
+            p.end()->name());
+    std::cout << PF.linksText() << "\n";
 
     // find path from source to discharge
-    PF.start( PF.find("source"));
-    PF.end( PF.find("sink"));
+    PF.start(PF.find("source1"));
+    PF.end(PF.find("sink1"));
     PF.path();
- 
 
     // print segments in path
     auto path = PF.getPath();
-    for( int k = 0; k < path.size()-1; k++ ) {
-        auto it = std::find(
-            thePipes.begin(), thePipes.end(),
-            std::make_pair( 
+    for (int k = 0; k < path.size() - 1; k++)
+    {
+        auto it = thePlumbing.find(
                 PF.userName(path[k]),
-                PF.userName(path[k+1]) ) );
-        if( it == thePipes.end() )
+                PF.userName(path[k + 1]));
+        if (it == thePlumbing.end())
             throw std::runtime_error(
-                "Cannot find path segment "
-                + std::to_string( path[k] )
-                + " " + std::to_string( path[k+1] ) );
+                "Cannot find path segment " + std::to_string(path[k]) + " " + std::to_string(path[k + 1]));
         std::cout << it->text() << "\n";
     }
 }

@@ -1,24 +1,28 @@
+#include <memory>
 class cNode;
+typedef std::shared_ptr<cNode> node_t;
 class cPipe
 {
 public:
-    cPipe(cNode &start, cNode &end);
-    cNode &start()
+    cPipe(
+        node_t start,
+        node_t end);
+    node_t start()
     {
         return myStart;
     }
-    cNode &end()
+    node_t end()
     {
         return myEnd;
     }
     std::string text();
 
-    bool operator==(std::pair<std::string,std::string> startEnd);
+    bool operator==(std::pair<std::string, std::string> startEnd);
 
 private:
     int myID;
-    cNode &myStart;
-    cNode &myEnd;
+    node_t myStart;
+    node_t myEnd;
     double myPressureLoss;
 };
 class cNode
@@ -32,7 +36,7 @@ public:
     };
     cNode(
         eType type,
-        const std::string& name );
+        const std::string &name);
     int id()
     {
         return myID;
@@ -49,30 +53,68 @@ private:
     std::string myName;
 };
 
-cPipe::cPipe(cNode &start, cNode &end)
+/// A forest of connected pipes
+class cPlumbing
+{
+public:
+    /** Add a pipe to the plumbing
+     * @param[in] src node where water enters pipe
+     * @param[in] dst node where water leaves pipe
+     */
+    void add(
+        node_t src,
+        node_t dst);
+    std::vector<cPipe>::iterator begin()
+    {
+        return myPipes.begin();
+    }
+    std::vector<cPipe>::iterator end()
+    {
+        return myPipes.end();
+    }
+    std::vector<cPipe>::iterator find(
+        const std::string &start,
+        const std::string &end)
+    {
+        return std::find(
+            myPipes.begin(), myPipes.end(),
+            std::make_pair(start, end));
+    }
+
+private:
+    std::vector<cPipe> myPipes;
+};
+
+cPipe::cPipe(node_t start, node_t end)
     : myStart(start), myEnd(end)
 {
 }
 
 std::string cPipe::text()
 {
-    return "Pipe from " + myStart.name() + " to " + myEnd.name();
+    return "Pipe from " + myStart->name() + " to " + myEnd->name();
 }
 
-bool cPipe::operator==(std::pair<std::string,std::string> startEnd)
+bool cPipe::operator==(std::pair<std::string, std::string> startEnd)
 {
     return (
-        myStart.name() == startEnd.first &&
-        myEnd.name() == startEnd.second);
+        myStart->name() == startEnd.first &&
+        myEnd->name() == startEnd.second);
 }
 
 int cNode::myLastID;
 
 cNode::cNode(
     cNode::eType type,
-    const std::string& name )
-    : myType(type)
-    , myName( name )
+    const std::string &name)
+    : myType(type), myName(name)
 {
     myID = ++myLastID;
+}
+
+void cPlumbing::add(
+    node_t src,
+    node_t dst)
+{
+    myPipes.push_back(cPipe(src, dst));
 }
