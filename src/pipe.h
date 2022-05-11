@@ -1,4 +1,5 @@
 #include <memory>
+#include <set>
 class cNode;
 typedef std::shared_ptr<cNode> node_t;
 class cPipe
@@ -49,12 +50,21 @@ public:
     {
         return myType;
     }
+    void connected()
+    {
+        myConnected = true;
+    }
+    bool isConnected()
+    {
+        return myConnected;
+    }
 
 private:
     eType myType;
     int myID;
     static int myLastID;
     std::string myName;
+    bool myConnected;
 };
 
 /// A forest of connected pipes
@@ -93,6 +103,14 @@ public:
     std::vector<cPipe>::iterator find(
         const std::string &start,
         const std::string &end);
+
+    /** Mark sources and sinks as connected
+    */
+    void Connected(std::pair<std::string, std::string> source_sink);
+
+    /** Get list of names of unconnected sources and sinks
+     */
+    std::string unConnected();
 
     /// Conform to STL container
     std::vector<cPipe>::iterator begin()
@@ -183,4 +201,33 @@ cPlumbing::find(
     return std::find(
         myPipes.begin(), myPipes.end(),
         std::make_pair(start, end));
+}
+
+void cPlumbing::Connected(std::pair<std::string, std::string> source_sink)
+{
+    for (auto &p : myPipes)
+    {
+        if (p.start()->name() == source_sink.first)
+            p.start()->connected();
+        if (p.end()->name() == source_sink.second)
+            p.end()->connected();
+    }
+}
+std::string
+cPlumbing::unConnected()
+{
+    std::set<std::string> s;
+    for (auto &p : myPipes)
+    {
+        if (p.start()->type() == cNode::eType::source)
+            if (!p.start()->isConnected())
+                s.insert(p.start()->name());
+        if( p.end()->type() == cNode::eType::discharge )
+            if( ! p.end()->isConnected() )
+                s.insert(p.end()->name() );
+    }
+    std::string ret;
+    for( auto& name : s )
+        ret += name + ", ";
+    return ret;
 }

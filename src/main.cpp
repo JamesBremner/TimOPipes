@@ -69,13 +69,21 @@ void Test()
         cNode::eType::none, "n4",
         cNode::eType::discharge, "sink2");
 
+    // Add a broken tree
+    thePlumbing.add(
+        cNode::eType::source, "source2",
+        cNode::eType::none, "n5");
+    thePlumbing.add(
+        cNode::eType::none, "n6",
+        cNode::eType::discharge, "sink3");
+
     // initialize graph with pipe tree
     PF.directed();
     for (auto &p : thePlumbing)
         PF.addLink(
             p.start()->name(),
             p.end()->name());
-    std::cout << PF.linksText() << "\n";
+    // std::cout << PF.linksText() << "\n";
 
     // loop over every possible source, sink pair
     for (auto &sd : thePlumbing.SourceDischargePairs())
@@ -86,13 +94,23 @@ void Test()
         PF.path();
 
         // check if path exists
-        if ( ! PF.getPath().size())
+        if (!PF.getPath().size())
             continue;
+
+        // mark source and sink as connected
+        thePlumbing.Connected(sd);
 
         // print segments in path
         PrintPathPipes();
     }
 
+    // Notify any unconnected sources and sinks
+    auto u = thePlumbing.unConnected();
+    if (u.length())
+        std::cout << "The sources & sinks are not connected\n"
+                  << u << "\n";
+    else
+        std::cout << "All sources and sinks are connected\n";
 }
 
 main()
