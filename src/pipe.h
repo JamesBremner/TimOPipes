@@ -79,24 +79,30 @@ public:
         cNode::eType type_src, const std::string &src,
         cNode::eType type_dst, const std::string &dst);
 
+    /** Get all possible pairs of source and discharge nodes
+     * @return vevtor of node name pairs
+     */
     std::vector<std::pair<std::string, std::string>>
     SourceDischargePairs();
 
+    /** find pipe between two nodes
+     * @param[in] start name of node at input
+     * @param[in] end name of node at output
+     * @return interator to pipe found, or end() if no pipe exists
+     */
+    std::vector<cPipe>::iterator find(
+        const std::string &start,
+        const std::string &end);
+
+    /// Conform to STL container
     std::vector<cPipe>::iterator begin()
     {
         return myPipes.begin();
     }
+    /// Conform to STL container
     std::vector<cPipe>::iterator end()
     {
         return myPipes.end();
-    }
-    std::vector<cPipe>::iterator find(
-        const std::string &start,
-        const std::string &end)
-    {
-        return std::find(
-            myPipes.begin(), myPipes.end(),
-            std::make_pair(start, end));
     }
 
 private:
@@ -155,15 +161,26 @@ cPlumbing::SourceDischargePairs()
     std::vector<std::pair<std::string, std::string>> ret;
     std::vector<std::string> vSource;
     std::vector<std::string> vSink;
-    for ( auto& p : myPipes ) {
-        if( p.start()->type() == cNode::eType::source )
-            vSource.push_back( p.start()->name() );
-        if( p.end()->type() == cNode::eType::discharge )
-            vSink.push_back( p.end()->name());
+    for (auto &p : myPipes)
+    {
+        if (p.start()->type() == cNode::eType::source)
+            vSource.push_back(p.start()->name());
+        if (p.end()->type() == cNode::eType::discharge)
+            vSink.push_back(p.end()->name());
     }
-    for( auto& src : vSource )
-        for( auto& dst : vSink )
-            ret.push_back( std::make_pair( src, dst ));
-            
+    for (auto &src : vSource)
+        for (auto &dst : vSink)
+            ret.push_back(std::make_pair(src, dst));
+
     return ret;
+}
+
+std::vector<cPipe>::iterator
+cPlumbing::find(
+    const std::string &start,
+    const std::string &end)
+{
+    return std::find(
+        myPipes.begin(), myPipes.end(),
+        std::make_pair(start, end));
 }
