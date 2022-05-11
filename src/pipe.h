@@ -64,6 +64,10 @@ public:
     void add(
         node_t src,
         node_t dst);
+    void add(
+        cNode::eType type_src, const std::string &src,
+        cNode::eType type_dst, const std::string &dst);
+
     std::vector<cPipe>::iterator begin()
     {
         return myPipes.begin();
@@ -117,4 +121,16 @@ void cPlumbing::add(
     node_t dst)
 {
     myPipes.push_back(cPipe(src, dst));
+}
+void cPlumbing::add(
+    cNode::eType type_src, const std::string &src,
+    cNode::eType type_dst, const std::string &dst)
+{
+    add(
+        node_t(new cNode(
+            type_src,
+            src)),
+        node_t(new cNode(
+            type_dst,
+            dst)) );
 }

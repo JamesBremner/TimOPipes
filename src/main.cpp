@@ -29,46 +29,53 @@ private:
     wex::label &lb;
 };
 
+cPlumbing thePlumbing;
+raven::graph::cPathFinder PF;
+
+void PrintPathPipes()
+{
+    auto path = PF.getPath();
+    for (int k = 0; k < path.size() - 1; k++)
+    {
+        auto it = thePlumbing.find(
+            PF.userName(path[k]),
+            PF.userName(path[k + 1]));
+        if (it == thePlumbing.end())
+            throw std::runtime_error(
+                "Cannot find path segment " + std::to_string(path[k]) + " " + std::to_string(path[k + 1]));
+        std::cout << it->text() << "\n";
+    }
+}
+
 void Test()
 {
-    cPlumbing thePlumbing;
-    
+    // Construct a pipe tree with two limbs
     thePlumbing.add(
-        node_t( new cNode(
-            cNode::eType::source,
-            "source1")),
-         node_t( new cNode(
-            cNode::eType::none,
-            "n1")));
-       thePlumbing.add(
-         node_t( new cNode(
-            cNode::eType::none,
-            "n1")),
-         node_t( new cNode(
-            cNode::eType::none,
-            "n2"))); 
-        thePlumbing.add(
-         node_t( new cNode(
-            cNode::eType::none,
-            "n2")),
-         node_t( new cNode(
-            cNode::eType::none,
-            "n3")));
-        thePlumbing.add(
-         node_t( new cNode(
-            cNode::eType::none,
-            "n3")),
-         node_t( new cNode(
-            cNode::eType::discharge,
-            "sink1")));
+        cNode::eType::source, "source1",
+        cNode::eType::none, "n1");
+    thePlumbing.add(
+        cNode::eType::none, "n1",
+        cNode::eType::none, "n2");
+    thePlumbing.add(
+        cNode::eType::none, "n2",
+        cNode::eType::none, "n3");
+    thePlumbing.add(
+        cNode::eType::none, "n3",
+        cNode::eType::discharge, "sink1");
+    thePlumbing.add(
+        cNode::eType::none, "n2",
+        cNode::eType::none, "n4");
+    thePlumbing.add(
+        cNode::eType::none, "n4",
+        cNode::eType::discharge, "sink2");
 
     // for( auto& n : theNodes )
-    //     std::cout << n.name() << " ( " << n.id() << " )\n"; 
+    //     std::cout << n.name() << " ( " << n.id() << " )\n";
     // for( auto& p : thePipes )
     //     std::cout << p.text() << "\n";
 
     // initialize graph with pipe tree
-    raven::graph::cPathFinder PF;
+
     PF.directed();
     for (auto &p : thePlumbing)
         PF.addLink(
@@ -76,23 +83,20 @@ void Test()
             p.end()->name());
     std::cout << PF.linksText() << "\n";
 
-    // find path from source to discharge
+    // find path from source1 to sink1
     PF.start(PF.find("source1"));
     PF.end(PF.find("sink1"));
     PF.path();
 
     // print segments in path
-    auto path = PF.getPath();
-    for (int k = 0; k < path.size() - 1; k++)
-    {
-        auto it = thePlumbing.find(
-                PF.userName(path[k]),
-                PF.userName(path[k + 1]));
-        if (it == thePlumbing.end())
-            throw std::runtime_error(
-                "Cannot find path segment " + std::to_string(path[k]) + " " + std::to_string(path[k + 1]));
-        std::cout << it->text() << "\n";
-    }
+    PrintPathPipes();
+
+    // find path from source1 to sink2
+    PF.start(PF.find("source1"));
+    PF.end(PF.find("sink2"));
+    PF.path(); 
+
+    PrintPathPipes();   
 }
 
 main()
