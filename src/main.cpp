@@ -69,13 +69,7 @@ void Test()
         cNode::eType::none, "n4",
         cNode::eType::discharge, "sink2");
 
-    // for( auto& n : theNodes )
-    //     std::cout << n.name() << " ( " << n.id() << " )\n";
-    // for( auto& p : thePipes )
-    //     std::cout << p.text() << "\n";
-
     // initialize graph with pipe tree
-
     PF.directed();
     for (auto &p : thePlumbing)
         PF.addLink(
@@ -83,20 +77,22 @@ void Test()
             p.end()->name());
     std::cout << PF.linksText() << "\n";
 
-    // find path from source1 to sink1
-    PF.start(PF.find("source1"));
-    PF.end(PF.find("sink1"));
-    PF.path();
+    // loop over every possible source, sink pair
+    for (auto &sd : thePlumbing.SourceDischargePairs())
+    {
+        // find path from source to sink
+        PF.start(PF.find(sd.first));
+        PF.end(PF.find(sd.second));
+        PF.path();
 
-    // print segments in path
-    PrintPathPipes();
+        // check if path exists
+        if ( ! PF.getPath().size())
+            continue;
 
-    // find path from source1 to sink2
-    PF.start(PF.find("source1"));
-    PF.end(PF.find("sink2"));
-    PF.path(); 
+        // print segments in path
+        PrintPathPipes();
+    }
 
-    PrintPathPipes();   
 }
 
 main()

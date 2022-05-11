@@ -45,6 +45,10 @@ public:
     {
         return myName;
     }
+    eType type()
+    {
+        return myType;
+    }
 
 private:
     eType myType;
@@ -64,9 +68,19 @@ public:
     void add(
         node_t src,
         node_t dst);
+
+    /** Add a pipe to the plumbing
+     * @param[in] type_src node type where water enters pipe
+     * @param[in] src name of node where water enters pipe
+     * @param[in] type_dst node type where water leaves pipe
+     * @param[in] dst name of node where water leaves pipe
+     */
     void add(
         cNode::eType type_src, const std::string &src,
         cNode::eType type_dst, const std::string &dst);
+
+    std::vector<std::pair<std::string, std::string>>
+    SourceDischargePairs();
 
     std::vector<cPipe>::iterator begin()
     {
@@ -132,5 +146,24 @@ void cPlumbing::add(
             src)),
         node_t(new cNode(
             type_dst,
-            dst)) );
+            dst)));
+}
+
+std::vector<std::pair<std::string, std::string>>
+cPlumbing::SourceDischargePairs()
+{
+    std::vector<std::pair<std::string, std::string>> ret;
+    std::vector<std::string> vSource;
+    std::vector<std::string> vSink;
+    for ( auto& p : myPipes ) {
+        if( p.start()->type() == cNode::eType::source )
+            vSource.push_back( p.start()->name() );
+        if( p.end()->type() == cNode::eType::discharge )
+            vSink.push_back( p.end()->name());
+    }
+    for( auto& src : vSource )
+        for( auto& dst : vSink )
+            ret.push_back( std::make_pair( src, dst ));
+            
+    return ret;
 }
