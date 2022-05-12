@@ -32,6 +32,57 @@ private:
 cPlumbing thePlumbing;
 raven::graph::cPathFinder PF;
 
+std::vector<std::string> ParseSpaceDelimited(
+    const std::string &l)
+{
+    std::vector<std::string> token;
+    std::stringstream sst(l);
+    std::string a;
+    while (getline(sst, a, ' '))
+        token.push_back(a);
+
+    token.erase(
+        remove_if(
+            token.begin(),
+            token.end(),
+            [](std::string t)
+            {
+                return (t.empty());
+            }),
+        token.end());
+
+    return token;
+}
+
+void read(const std::string &fname)
+{
+    std::ifstream f(fname);
+    if (!f.is_open())
+        throw std::runtime_error(
+            "Cannot open input file");
+    std::string line;
+    while (getline(f, line))
+    {
+
+        auto tokens = ParseSpaceDelimited(line);
+        if (tokens.size() != 4)
+        {
+            std::cout << line << "\n";
+            throw std::runtime_error(
+                "Bad inpiut line");
+        }
+        cNode::eType src_type = cNode::eType::none;
+        cNode::eType dst_type = cNode::eType::none;
+        if( tokens[1] == "source")
+            src_type = cNode::eType::source;
+        if( tokens[3] == "discharge")
+            dst_type = cNode::eType::discharge;
+        thePlumbing.add(
+            src_type, tokens[0],
+            dst_type, tokens[2] );
+    }
+}
+
 void PrintPathPipes()
 {
     auto path = PF.getPath();
@@ -49,41 +100,13 @@ void PrintPathPipes()
 
 void Test()
 {
-    // Construct a pipe tree with two limbs
-    thePlumbing.add(
-        cNode::eType::source, "source1",
-        cNode::eType::none, "n1");
-    thePlumbing.add(
-        cNode::eType::none, "n1",
-        cNode::eType::none, "n2");
-    thePlumbing.add(
-        cNode::eType::none, "n2",
-        cNode::eType::none, "n3");
-    thePlumbing.add(
-        cNode::eType::none, "n3",
-        cNode::eType::discharge, "sink1");
-    thePlumbing.add(
-        cNode::eType::none, "n2",
-        cNode::eType::none, "n4");
-    thePlumbing.add(
-        cNode::eType::none, "n4",
-        cNode::eType::discharge, "sink2");
-
-    // Add a broken tree
-    thePlumbing.add(
-        cNode::eType::source, "source2",
-        cNode::eType::none, "n5");
-    thePlumbing.add(
-        cNode::eType::none, "n6",
-        cNode::eType::discharge, "sink3");
-
     // initialize graph with pipe tree
     PF.directed();
     for (auto &p : thePlumbing)
         PF.addLink(
             p.start()->name(),
             p.end()->name());
-    // std::cout << PF.linksText() << "\n";
+     std::cout << PF.linksText() << "\n";
 
     // loop over every possible source, sink pair
     for (auto &sd : thePlumbing.SourceDischargePairs())
@@ -115,8 +138,9 @@ void Test()
 
 main()
 {
+    read("pipe.txt");
     Test();
 
-    cGUI theGUI;
+    // cGUI theGUI;
     return 0;
 }
