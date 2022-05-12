@@ -106,7 +106,7 @@ void Test()
         PF.addLink(
             p.start()->name(),
             p.end()->name());
-     std::cout << PF.linksText() << "\n";
+    //std::cout << PF.linksText() << "\n";
 
     // loop over every possible source, sink pair
     for (auto &sd : thePlumbing.SourceDischargePairs())
